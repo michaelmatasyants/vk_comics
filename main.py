@@ -64,7 +64,8 @@ def publish_photo(photo_path: Path, acess_token: str,
         return params
 
     def publish_in_group(params: dict):
-        '''Publishes uploaded photo with its comment on the wall of community'''
+        '''Publishes uploaded photo with its comment on the wall
+           of community'''
         publish_response = vk_api_tools.get_response(
             url='https://api.vk.com/method/wall.post/', payload=params)
         return publish_response.json()
@@ -76,7 +77,8 @@ def publish_photo(photo_path: Path, acess_token: str,
     except AttributeError:
         params = upload_to_server(photo_path=photo_path, params=params,
                                   upload_url=server_response[1])
-        return publish_in_group(save_photo_to_album(params=params, message=message))
+        return publish_in_group(save_photo_to_album(params=params,
+                                                    message=message))
 
 
 def get_count_of_comics() -> int:
