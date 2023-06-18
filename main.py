@@ -19,26 +19,23 @@ def publish_photo(photo_path: Path, acess_token: str,
         'v': 5.81,
     }
 
-    def get_server(params: dict) -> tuple | dict:
-        '''Gets the album_id, servers url address and user_id
-           for uploading photo'''
+    def get_server_url(params: dict) -> tuple | dict:
+        '''Gets server's url address for uploading photo'''
         server_response = vk_api_tools.get_response(
             url='https://api.vk.com/method/photos.getWallUploadServer/',
             payload=params).json()
-        error_occured = server_response.get('error')
-        if error_occured:
+        if server_response.get('error'):
             return server_response
-        album_id, upload_url, user_id = server_response.get(
-            'response').values()
-        return album_id, upload_url, user_id
+        server_url = server_response.get('response').get('upload_url')
+        return server_url
 
-    def upload_to_server(
-            photo_path: Path, params: dict, upload_url: str) -> dict | None:
+    def upload_to_server(photo_path: Path, params: dict, server_url: str
+                         ) -> dict | None:
         '''Uploads the file to the server and returns updated params
            with adding server, photo and hash'''
         with open(file=photo_path, mode='rb') as image:
             files = {'photo': image}
-            upload_response = requests.post(url=upload_url, files=files)
+            upload_response = requests.post(url=server_url, files=files)
             upload_response.raise_for_status()
             keys = ['server', 'photo', 'hash']
             values = list(upload_response.json().values())
@@ -64,21 +61,20 @@ def publish_photo(photo_path: Path, acess_token: str,
         return params
 
     def publish_in_group(params: dict):
-        '''Publishes uploaded photo with its comment on the wall
-           of community'''
+        '''Publishes uploaded photo and its comment on the wall of the group'''
         publish_response = vk_api_tools.get_response(
             url='https://api.vk.com/method/wall.post/', payload=params)
         return publish_response.json()
 
-    server_response = get_server(params=params)
+    server_response = get_server_url(params=params)
     try:
         server_response.get('error')
         return server_response
     except AttributeError:
-        params = upload_to_server(photo_path=photo_path, params=params,
-                                  upload_url=server_response[1])
-        return publish_in_group(save_photo_to_album(params=params,
-                                                    message=message))
+        new_params = upload_to_server(photo_path=photo_path, params=params,
+                                      server_url=server_response)
+        return publish_in_group(params=save_photo_to_album(params=new_params,
+                                                           message=message))
 
 
 def get_count_of_comics() -> int:
@@ -120,8 +116,11 @@ def main():
     image_name = vk_api_tools.download_image(image_url=image_url,
                                              to_save_path=args.path)
     photo_path = Path(args.path, image_name)
-    print(publish_photo(photo_path=photo_path, acess_token=vk_access_token,
-                        group_id=vk_group_id, message=comics_comment))
+    try:
+        print(publish_photo(photo_path=photo_path, acess_token=vk_access_token,
+                            group_id=vk_group_id, message=comics_comment))
+    except Exception as err:
+        print(err)
     os.remove(photo_path)
 
 
