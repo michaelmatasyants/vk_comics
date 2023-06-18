@@ -57,17 +57,16 @@ def publish_photo(photo_path: Path, acess_token: str,
         dict_response = photo_response.json().get('response')[0]
         owner_id = -(dict_response.get('owner_id'))
         media_id = dict_response.get('id')
-        #return owner_id, media_id
         keys = ['owner_id', 'from_group', 'attachments', 'message']
         values = [owner_id, from_group, f'photo{owner_id}_{media_id}', message]
         for key, value in dict(zip(keys, values)).items():
             params[key] = value
         return params
 
-    def publish_in_group(params):
+    def publish_in_group(params: dict):
+        '''Publishes uploaded photo with its comment on the wall of community'''
         publish_response = vk_api_tools.get_response(
-            url='https://api.vk.com/method/wall.post/',
-            payload=params)
+            url='https://api.vk.com/method/wall.post/', payload=params)
         return publish_response.json()
 
     server_response = get_server(params=params)
@@ -105,15 +104,19 @@ def main():
     vk_access_token = os.environ['VK_ACCESS_TOKEN']
     vk_group_id = os.environ['VK_GROUP_ID']
     parser = argparse.ArgumentParser(
-        description='''Add a description'''
+        description='''The script downloads randomly chosen image of the comic
+                       and its funny comment from https://xkcd.com/.
+                       The downloaded comic is published on the wall of the
+                       group (community) on vk.com.
+                       After publication the uploaded photo is deleted.'''
     )
     parser.add_argument("-p", "--path", type=Path, default="images",
-                        help="add text to help")
+                        help="path where the uploaded photo will be saved")
     args = parser.parse_args()
     vk_api_tools.check_create_path(args.path)
     image_url, comics_comment = get_random_comics(get_count_of_comics())
     image_name = vk_api_tools.download_image(image_url=image_url,
-                                      to_save_path=args.path)
+                                             to_save_path=args.path)
     photo_path = Path(args.path, image_name)
     print(publish_photo(photo_path=photo_path, acess_token=vk_access_token,
                         group_id=vk_group_id, message=comics_comment))
