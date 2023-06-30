@@ -14,12 +14,15 @@
     ```
 4. Tokens and other keys:
    1. You need to [create your own group](https://vk.com/groups?tab=admin&w=groups_create) or use an existing one in which you're going to make publications. Paste the group URL [into the search](https://regvk.com/id/) to find out the `group_id` for your group, and then save it.
-   2. To post to the group wall, you need a user access token. You can get it by [creating a Standalone application](https://vk.com/editapp?act=create) in VK on the page for developers. After creating press [manage the application](https://vk.com/apps?act=manage), change App status to `Application on and visible to all` and save the `App ID`, it'll come in handy to get token.
-   Replace the App_id text in the URL with your `App ID` and browse:
+   2. To post to the group wall, you need a user access token. You can get it by [creating a Standalone application](https://vk.com/editapp?act=create) in VK on the page for developers.  
+   After creating press [manage the application](https://vk.com/apps?act=manage), change App status to `Application on and visible to all` and save the `App ID`, it'll come in handy to get token.  
+   Last step is to get token with use of [Implicit Flow](https://dev.vk.com/api/access-token/implicit-flow-user).
+   Replace the App_id in the URL with your `App ID` and browse:
       ```
       https://oauth.vk.com/authorize?client_id=App_id&display=page&scope=photos,groups,wall,offline&response_type=token
       ```
-      From the resulting URL, copy and save `access_token`. Resulting URL:
+      From the resulting URL, copy and save `access_token`.  
+      Resulting URL:
       ```
       https://oauth.vk.com/blank.html#access_token=TOKEN&expires_in=0&user_id=123
       ```
