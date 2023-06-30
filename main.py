@@ -137,6 +137,7 @@ def main():
     except Exception as err:
         print(err)
     os.remove(photo_path)
+    return print(f"{image_name} image has been successfully posted.")
 
 
 if __name__ == "__main__":
