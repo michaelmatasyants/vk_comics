@@ -1,5 +1,6 @@
 # Comics publisher
 
+The script loads a randomly chosen [comic image and a funny comment on it](https://xkcd.com/). The uploaded comic is published on the wall of the group (community) in [VK](https://vk.com/). After publication, the uploaded picture is deleted.
 
 
 ### How to install
