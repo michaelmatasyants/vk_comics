@@ -46,8 +46,7 @@ Output:
 ```Console
 usage: main.py [-h] [-p PATH]
 
-The script downloads randomly chosen image of the comic and its funny comment from https://xkcd.com/. The downloaded comic is published on the wall of the group (community) on vk.com. After publication the uploaded photo is
-deleted.
+The script downloads randomly chosen image of the comic and its funny comment from https://xkcd.com/. The downloaded comic is published on the wall of the group (community) on vk.com. After publication the uploaded photo is deleted.
 
 options:
   -h, --help            show this help message and exit
