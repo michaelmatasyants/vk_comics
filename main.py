@@ -139,7 +139,8 @@ def main():
                       group_id=vk_group_id, message=comic_comment)
     except (requests.exceptions.HTTPError, ValueError) as err:
         return print(err)
-    os.remove(photo_path)
+    finally:
+        os.remove(photo_path)
     return print(f"{image_name} image has been successfully posted.")
 
 
