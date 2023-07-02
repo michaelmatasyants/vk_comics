@@ -34,7 +34,8 @@ def upload_to_server(photo_path: Path, server_url: str) -> list | None:
         upload_response.raise_for_status()
         upload_response_values = list(upload_response.json().values())
         if not upload_response_values[1]:
-            raise Exception("File wasn't uploaded")
+            raise ValueError(
+                "Image wasn't loaded, check the name of parameter in API docs")
         return upload_response_values
 
 
@@ -80,7 +81,7 @@ def publish_photo(photo_path: Path, access_token: str,
     saves the photo to the group album and publishes the post in the group'''
     server_response = get_server_url(access_token, group_id, version)
     server, photo, upload_hash = upload_to_server(photo_path,
-                                           server_url=server_response)
+                                                  server_url=server_response)
     attachments = save_photo_to_album(access_token, group_id, version,
                                       server, photo, upload_hash)
     return publish_in_group(access_token=access_token, group_id=group_id,
@@ -129,14 +130,14 @@ def main():
     try:
         image_url, comic_comment = get_random_comic(
             comics_number=get_count_of_comics())
-    except Exception as err:
+    except requests.exceptions.HTTPError as err:
         return print(err)
     image_name = download_image(image_url=image_url, to_save_path=args.path)
     photo_path = Path(args.path, image_name)
     try:
         publish_photo(photo_path=photo_path, access_token=vk_access_token,
                       group_id=vk_group_id, message=comic_comment)
-    except Exception as err:
+    except (requests.exceptions.HTTPError, ValueError) as err:
         return print(err)
     os.remove(photo_path)
     return print(f"{image_name} image has been successfully posted.")
