@@ -90,23 +90,23 @@ def publish_photo(photo_path: Path, access_token: str,
 
 def get_count_of_comics() -> int:
     '''Function returns number of existing comics on the current date'''
-    curent_comics_response = requests.get('https://xkcd.com/info.0.json')
-    curent_comics_response.raise_for_status()
-    comics_number = curent_comics_response.json().get('num')
+    curent_comic_response = requests.get('https://xkcd.com/info.0.json')
+    curent_comic_response.raise_for_status()
+    comics_number = curent_comic_response.json().get('num')
     return comics_number
 
 
-def get_random_comics(comics_number) -> tuple:
-    '''Selects a random comics based on the number of existing comics
-       and returns url of the comics image and its comment.'''
-    random_comics_number = random.randrange(1, comics_number + 1)
-    comics_response = requests.get(
-        f"https://xkcd.com/{random_comics_number}/info.0.json")
-    comics_response.raise_for_status()
-    comics_response = comics_response.json()
-    image_url = comics_response.get('img')
-    comics_comment = comics_response.get('alt')
-    return image_url, comics_comment
+def get_random_comic(comics_number) -> tuple:
+    '''Selects a random comic based on the number of existing comics
+       and returns url of the comic image and its comment.'''
+    random_comic_number = random.randrange(1, comics_number + 1)
+    comic_response = requests.get(
+        f"https://xkcd.com/{random_comic_number}/info.0.json")
+    comic_response.raise_for_status()
+    comic_response = comic_response.json()
+    image_url = comic_response.get('img')
+    comic_comment = comic_response.get('alt')
+    return image_url, comic_comment
 
 
 def main():
@@ -127,7 +127,7 @@ def main():
     args = parser.parse_args()
     check_create_path(args.path)
     try:
-        image_url, comics_comment = get_random_comics(
+        image_url, comic_comment = get_random_comic(
             comics_number=get_count_of_comics())
     except Exception as err:
         return print(err)
@@ -135,7 +135,7 @@ def main():
     photo_path = Path(args.path, image_name)
     try:
         publish_photo(photo_path=photo_path, access_token=vk_access_token,
-                      group_id=vk_group_id, message=comics_comment)
+                      group_id=vk_group_id, message=comic_comment)
     except Exception as err:
         return print(err)
     os.remove(photo_path)
