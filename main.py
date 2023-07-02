@@ -34,7 +34,7 @@ def upload_to_server(photo_path: Path, server_url: str) -> list | None:
         upload_response.raise_for_status()
         upload_response_values = list(upload_response.json().values())
         if not upload_response_values[1]:
-            return print("File wasn't uploaded")
+            raise Exception("File wasn't uploaded")
         return upload_response_values
 
 
