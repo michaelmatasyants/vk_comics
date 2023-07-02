@@ -131,17 +131,17 @@ def main():
         image_url, comic_comment = get_random_comic(
             comics_number=get_count_of_comics())
     except requests.exceptions.HTTPError as err:
-        return print(err)
+        print(err)
     image_name = download_image(image_url=image_url, to_save_path=args.path)
     photo_path = Path(args.path, image_name)
     try:
         publish_photo(photo_path=photo_path, access_token=vk_access_token,
                       group_id=vk_group_id, message=comic_comment)
     except (requests.exceptions.HTTPError, ValueError) as err:
-        return print(err)
+        print(err)
     finally:
         os.remove(photo_path)
-    return print(f"{image_name} image has been successfully posted.")
+    print(f"{image_name} image has been successfully posted.")
 
 
 if __name__ == "__main__":
