@@ -7,74 +7,77 @@ from vk_api_tools import check_create_path, download_image
 from dotenv import load_dotenv
 
 
+def get_server_url(access_token: str, group_id: int,
+                   version: float) -> str | dict:
+    '''Gets server's url address for uploading file'''
+    payload = {
+        'access_token': access_token,
+        'group_id': group_id,
+        'v': version,
+    }
+    server_response = requests.get(
+        url='https://api.vk.com/method/photos.getWallUploadServer/',
+        params=payload)
+    server_response = server_response.json()
+    if server_response.get('error'):
+        return server_response
+    server_url = server_response.get('response').get('upload_url')
+    return server_url
+
+
+def upload_to_server(photo_path: Path, server_url: str) -> list | None:
+    '''Uploads the file to the server and returns list with
+       server, photo and hash'''
+    with open(file=photo_path, mode='rb') as image:
+        files = {'photo': image}
+        upload_response = requests.post(url=server_url, files=files)
+        upload_response.raise_for_status()
+        upload_response_values = list(upload_response.json().values())
+        if not upload_response_values[1]:
+            return print("File wasn't uploaded")
+        return upload_response_values
+
+
+def save_photo_to_album(access_token: str, group_id: int, version: float,
+                        server: int, photo: str, hash: str) -> str:
+    '''Saves uploaded photo to album and returns attachments message'''
+    data = {
+        'access_token': access_token,
+        'group_id': group_id,
+        'v': version,
+        'server': server,
+        'photo': photo,
+        'hash': hash,
+    }
+    photo_response = requests.post(
+        url='https://api.vk.com/method/photos.saveWallPhoto/', data=data)
+    photo_response.raise_for_status()
+    photo_response = photo_response.json().get('response')[0]
+    owner_id = photo_response.get('owner_id')
+    media_id = photo_response.get('id')
+    return f'photo{owner_id}_{media_id}'
+
+
+def publish_in_group(access_token: str, group_id: int, version: float,
+                     attachments: str, message: str):
+    '''Publishes uploaded photo and its comment on the wall of the group'''
+    payload = {
+        'access_token': access_token,
+        'v': version,
+        'owner_id': f'-{group_id}',
+        'from_group': 1,
+        'attachments': attachments,
+        'message': message,
+    }
+    publish_response = requests.get(
+        url='https://api.vk.com/method/wall.post/', params=payload)
+    publish_response.raise_for_status()
+
+
 def publish_photo(photo_path: Path, access_token: str,
                   group_id: int, message: str, version=5.81):
     '''Gets the address for uploading files, uploads it to the server,
     saves the photo to the group album and publishes the post in the group'''
-
-    def get_server_url(access_token: str, group_id: int,
-                       version: float) -> str | dict:
-        '''Gets server's url address for uploading file'''
-        payload = {
-            'access_token': access_token,
-            'group_id': group_id,
-            'v': version,
-        }
-        server_response = requests.get(
-            url='https://api.vk.com/method/photos.getWallUploadServer/',
-            params=payload)
-        server_response = server_response.json()
-        if server_response.get('error'):
-            return server_response
-        server_url = server_response.get('response').get('upload_url')
-        return server_url
-
-    def upload_to_server(photo_path: Path, server_url: str) -> list | None:
-        '''Uploads the file to the server and returns list with
-           server, photo and hash'''
-        with open(file=photo_path, mode='rb') as image:
-            files = {'photo': image}
-            upload_response = requests.post(url=server_url, files=files)
-            upload_response.raise_for_status()
-            upload_response_values = list(upload_response.json().values())
-            if not upload_response_values[1]:
-                return print("File wasn't uploaded")
-            return upload_response_values
-
-    def save_photo_to_album(access_token: str, group_id: int, version: float,
-                            server: int, photo: str, hash: str) -> str:
-        '''Saves uploaded photo to album and returns attachments message'''
-        data = {
-            'access_token': access_token,
-            'group_id': group_id,
-            'v': version,
-            'server': server,
-            'photo': photo,
-            'hash': hash,
-        }
-        photo_response = requests.post(
-            url='https://api.vk.com/method/photos.saveWallPhoto/', data=data)
-        photo_response.raise_for_status()
-        photo_response = photo_response.json().get('response')[0]
-        owner_id = photo_response.get('owner_id')
-        media_id = photo_response.get('id')
-        return f'photo{owner_id}_{media_id}'
-
-    def publish_in_group(access_token: str, version: float,
-                         attachments: str, message: str):
-        '''Publishes uploaded photo and its comment on the wall of the group'''
-        payload = {
-            'access_token': access_token,
-            'v': version,
-            'owner_id': f'-{group_id}',
-            'from_group': 1,
-            'attachments': attachments,
-            'message': message,
-        }
-        publish_response = requests.get(
-            url='https://api.vk.com/method/wall.post/', params=payload)
-        publish_response.raise_for_status()
-
     server_response = get_server_url(access_token, group_id, version)
     try:
         server_response.get('error')
@@ -84,7 +87,9 @@ def publish_photo(photo_path: Path, access_token: str,
                                                server_url=server_response)
     attachments = save_photo_to_album(access_token, group_id, version,
                                       server, photo, hash)
-    return publish_in_group(access_token, version, attachments, message)
+    return publish_in_group(access_token=access_token, group_id=group_id,
+                            version=version, attachments=attachments,
+                            message=message)
 
 
 def get_count_of_comics() -> int:
@@ -126,7 +131,8 @@ def main():
     args = parser.parse_args()
     check_create_path(args.path)
     try:
-        image_url, comics_comment = get_random_comics(get_count_of_comics())
+        image_url, comics_comment = get_random_comics(
+            comics_number=get_count_of_comics())
     except Exception as err:
         return print(err)
     image_name = download_image(image_url=image_url, to_save_path=args.path)
