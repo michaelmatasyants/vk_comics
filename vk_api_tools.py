@@ -4,10 +4,6 @@ from urllib.parse import urlparse, unquote
 import requests
 
 
-def check_create_path(to_save_path: Path):
-    to_save_path.mkdir(parents=True, exist_ok=True)
-
-
 def get_filename_extension(image_url: str) -> tuple:
     '''Gets filename and extension from given url'''
     root, extension = os.path.splitext(urlparse(unquote(image_url)).path)

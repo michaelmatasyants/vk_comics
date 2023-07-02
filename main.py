@@ -3,8 +3,8 @@ import argparse
 import os
 import random
 import requests
-from vk_api_tools import check_create_path, download_image
 from dotenv import load_dotenv
+from vk_api_tools import download_image
 
 
 def get_server_url(access_token: str, group_id: int,
@@ -125,7 +125,7 @@ def main():
     parser.add_argument("-p", "--path", type=Path, default="images",
                         help="path where the uploaded photo will be saved")
     args = parser.parse_args()
-    check_create_path(args.path)
+    args.path.mkdir(parents=True, exist_ok=True)
     try:
         image_url, comic_comment = get_random_comic(
             comics_number=get_count_of_comics())
