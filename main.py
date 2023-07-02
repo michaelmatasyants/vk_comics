@@ -27,7 +27,7 @@ def get_server_url(access_token: str, group_id: int,
 
 def upload_to_server(photo_path: Path, server_url: str) -> list | None:
     '''Uploads the file to the server and returns list with
-       server, photo and hash'''
+       server, photo and upload_hash'''
     with open(file=photo_path, mode='rb') as image:
         files = {'photo': image}
         upload_response = requests.post(url=server_url, files=files)
@@ -39,7 +39,7 @@ def upload_to_server(photo_path: Path, server_url: str) -> list | None:
 
 
 def save_photo_to_album(access_token: str, group_id: int, version: float,
-                        server: int, photo: str, hash: str) -> str:
+                        server: int, photo: str, upload_hash: str) -> str:
     '''Saves uploaded photo to album and returns attachments message'''
     data = {
         'access_token': access_token,
@@ -47,7 +47,7 @@ def save_photo_to_album(access_token: str, group_id: int, version: float,
         'v': version,
         'server': server,
         'photo': photo,
-        'hash': hash,
+        'hash': upload_hash,
     }
     photo_response = requests.post(
         url='https://api.vk.com/method/photos.saveWallPhoto/', data=data)
@@ -79,10 +79,10 @@ def publish_photo(photo_path: Path, access_token: str,
     '''Gets the address for uploading files, uploads it to the server,
     saves the photo to the group album and publishes the post in the group'''
     server_response = get_server_url(access_token, group_id, version)
-    server, photo, hash = upload_to_server(photo_path,
+    server, photo, upload_hash = upload_to_server(photo_path,
                                            server_url=server_response)
     attachments = save_photo_to_album(access_token, group_id, version,
-                                      server, photo, hash)
+                                      server, photo, upload_hash)
     return publish_in_group(access_token=access_token, group_id=group_id,
                             version=version, attachments=attachments,
                             message=message)
