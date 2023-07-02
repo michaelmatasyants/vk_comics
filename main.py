@@ -137,11 +137,11 @@ def main():
     try:
         publish_photo(photo_path=photo_path, access_token=vk_access_token,
                       group_id=vk_group_id, message=comic_comment)
+        print(f"{image_name} image has been successfully posted.")
     except (requests.exceptions.HTTPError, ValueError) as err:
         print(err)
     finally:
         os.remove(photo_path)
-    print(f"{image_name} image has been successfully posted.")
 
 
 if __name__ == "__main__":
