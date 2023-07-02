@@ -18,10 +18,10 @@ def get_server_url(access_token: str, group_id: int,
     server_response = requests.get(
         url='https://api.vk.com/method/photos.getWallUploadServer/',
         params=payload)
-    server_response = server_response.json()
-    if server_response.get('error'):
-        return server_response
-    server_url = server_response.get('response').get('upload_url')
+    decoded_server_response = server_response.json()
+    if 'error' in decoded_server_response:
+        raise requests.exceptions.HTTPError(decoded_server_response['error'])
+    server_url = decoded_server_response.get('response').get('upload_url')
     return server_url
 
 
@@ -79,12 +79,8 @@ def publish_photo(photo_path: Path, access_token: str,
     '''Gets the address for uploading files, uploads it to the server,
     saves the photo to the group album and publishes the post in the group'''
     server_response = get_server_url(access_token, group_id, version)
-    try:
-        server_response.get('error')
-        return server_response
-    except AttributeError:
-        server, photo, hash = upload_to_server(photo_path,
-                                               server_url=server_response)
+    server, photo, hash = upload_to_server(photo_path,
+                                           server_url=server_response)
     attachments = save_photo_to_album(access_token, group_id, version,
                                       server, photo, hash)
     return publish_in_group(access_token=access_token, group_id=group_id,
@@ -141,7 +137,7 @@ def main():
         publish_photo(photo_path=photo_path, access_token=vk_access_token,
                       group_id=vk_group_id, message=comics_comment)
     except Exception as err:
-        print(err)
+        return print(err)
     os.remove(photo_path)
     return print(f"{image_name} image has been successfully posted.")
 
