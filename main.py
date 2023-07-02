@@ -31,12 +31,12 @@ def upload_to_server(photo_path: Path, server_url: str) -> list | None:
     with open(file=photo_path, mode='rb') as image:
         files = {'photo': image}
         upload_response = requests.post(url=server_url, files=files)
-        upload_response.raise_for_status()
-        upload_response_values = list(upload_response.json().values())
-        if not upload_response_values[1]:
-            raise ValueError(
+    upload_response.raise_for_status()
+    upload_response_values = list(upload_response.json().values())
+    if not upload_response_values[1]:
+        raise ValueError(
                 "Image wasn't loaded, check the name of parameter in API docs")
-        return upload_response_values
+    return upload_response_values
 
 
 def save_photo_to_album(access_token: str, group_id: int, version: float,
